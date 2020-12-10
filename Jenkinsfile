@@ -3,12 +3,12 @@ pipeline {
     stages{
         stage('Build Backend') {
             steps {
-                sh 'mvn clean package -DskipTests=true'
+                bat 'mvn clean package -DskipTests=true'
             }
         }
         stage('Unit Tests') {
             steps {
-                sh 'mvn test'
+                bat 'mvn test'
             }
         }
         stage('Sonar Analysis') {
@@ -17,7 +17,7 @@ pipeline {
             }
             steps {
                 withSonarQubeEnv('SONAR_LOCAL') {
-                    sh "${scannerHome}/bin/sonar-scanner -e -Dsonar.projectKey=DeployBack -Dsonar.host.url=http://localhost:9000 -Dsonar.login=9aa0c451a1c307c2eb1254fb7bf22cb27edbd232 -Dsonar.java.binaries=target -Dsonar.coverage.exclusions=**/.mvn/**,**/src/test/**,**/model/**,**Application.java"
+                    bat "${scannerHome}/bin/sonar-scanner -e -Dsonar.projectKey=DeployBack -Dsonar.host.url=http://localhost:9000 -Dsonar.login=9aa0c451a1c307c2eb1254fb7bf22cb27edbd232 -Dsonar.java.binaries=target -Dsonar.coverage.exclusions=**/.mvn/**,**/src/test/**,**/model/**,**Application.java"
                 }
             }
         }
@@ -38,7 +38,7 @@ pipeline {
             steps{
                 dir('api-test') {
                     git 'https://github.com/YuriMaineri/task-api-test'                
-                    sh 'mvn test'
+                    bat 'mvn test'
                 }
             }
         }
@@ -46,7 +46,7 @@ pipeline {
             steps{
                 dir('frontend'){
                     git 'https://github.com/YuriMaineri/tasks-frontend'    
-                    sh 'mvn clean package'            
+                    bat 'mvn clean package'            
                     deploy adapters: [tomcat8(credentialsId: 'tomcat_login', path: '', url: 'http://localhost:8001/')], contextPath: 'tasks', war: 'target/tasks.war'
                 }
             }
@@ -55,21 +55,21 @@ pipeline {
             steps{
                 dir('functional-test') {
                     git 'https://github.com/YuriMaineri/tasks-functional-test'                
-                    sh 'mvn test'
+                    bat 'mvn test'
                 }
             }
         }
         stage('Deploy Prod') {
             steps{
-                sh 'docker-compose build'
-                sh 'docker-compose up -d'
+                bat 'docker-compose build'
+                bat 'docker-compose up -d'
             }
         }
         stage('Teste Producao') {
             steps{
                 sleep(10)
                 dir('functional-test') {                
-                    sh 'mvn verify -Dskip.surefire.tests'
+                    bat 'mvn verify -Dskip.surefire.tests'
                 }
             }
         }
